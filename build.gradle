@@ -2,13 +2,61 @@ group 'pro.civitaspo.maven'
 version '0.0.1'
 
 apply plugin: 'java'
+apply plugin: 'maven-publish'
 
 sourceCompatibility = 1.8
 
+buildscript {
+  repositories { jcenter() }
+  dependencies { classpath 'com.amazonaws:aws-java-sdk-sts:1.11.241' }
+}
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.auth.AWSSessionCredentials
+ext {
+  privateMavenBucket = "my-maven-bucket"
+  privateMavenPrefix = "maven"
+  privateMavenCredentials = new DefaultAWSCredentialsProviderChain().credentials
+}
+static boolean isAWSSessionCredentials(c) {
+  return c instanceof AWSSessionCredentials
+}
+// ref. https://docs.gradle.org/4.3.1/userguide/publishing_maven.html
+publishing {
+  repositories {
+    maven {
+      url "s3://${privateMavenBucket}/${privateMavenPrefix}"
+      credentials(AwsCredentials) {
+        accessKey privateMavenCredentials.AWSAccessKeyId
+        secretKey privateMavenCredentials.AWSSecretKey
+        if (isAWSSessionCredentials(privateMavenCredentials)) {
+          sessionToken privateMavenCredentials.sessionToken
+        }
+      }
+    }
+  }
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+}
+
 repositories {
-    mavenCentral()
+  mavenCentral()
+  maven {
+    url "s3://${privateMavenBucket}/${privateMavenPrefix}"
+    credentials(AwsCredentials) {
+      accessKey privateMavenCredentials.AWSAccessKeyId
+      secretKey privateMavenCredentials.AWSSecretKey
+      if (isAWSSessionCredentials(privateMavenCredentials)) {
+        sessionToken privateMavenCredentials.sessionToken
+      }
+    }
+  }
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+  compile group: 'pro.civitaspo.maven', name: 'gradle-maven-template', version: '0.0.1'
+  testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
