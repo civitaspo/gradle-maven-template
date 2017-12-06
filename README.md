@@ -11,4 +11,5 @@ This repository is for my personal gradle templates for private S3 maven publish
 
 # Authentication
 
-See. http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSSessionCredentials.html
+See. http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html
+
